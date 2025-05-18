@@ -42,24 +42,25 @@ module counter (
     input [7:0] load // Load value
 );
     
-    reg [7:0] out_next = 8'b0; // Next value to be assigned
+    reg [7:0] out_next; // Next value to be assigned
     parameter [7:0] DEFAULT_LOAD_VALUE = 8'b0; // Default load value
     
     always @(posedge clk or posedge reset) begin
         if (reset) begin
-            if(load)begin
-                out <= load; // Load the value if load is high
-                out_next <= load; // Set next value to loaded value
-            end else begin
-                out <= DEFAULT_LOAD_VALUE; // Reset to default value
-                out_next <= DEFAULT_LOAD_VALUE; // Set next value to default
-            end
-           
-       end else if (!enable) begin
-            //out <= 8'bz;
+            out <= DEFAULT_LOAD_VALUE;
+            out_next <= DEFAULT_LOAD_VALUE;
+        end else if (!enable) begin
+            // Hold value or add custom logic if needed
         end else begin
             out <= out_next;
             out_next <= out_next + 1;
+        end
+    end
+
+    // Optional: logic to load a value
+    always @(posedge clk) begin
+        if (load) begin
+            out_next <= load;
         end
     end
 endmodule
