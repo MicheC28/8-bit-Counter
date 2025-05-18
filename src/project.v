@@ -18,7 +18,9 @@ module tt_um_example (
 
     wire [7:0] load = 8'b11000101;
     wire [7:0] value;
-    counter c1(value, clk, rst_n, ena, load);
+    wire load_en = 0;
+    
+    counter c1(value, clk, ~rst_n, ena, load, load_en);
 
   // All output pins must be assigned. If not used, assign to 0.
   assign uo_out  = ena ? value : 8'bz;
@@ -33,35 +35,22 @@ endmodule
 
 
 
-
 module counter (
     output reg [7:0] out,
     input clk,
     input reset,
     input enable,
-    input [7:0] load // Load value
+    input [7:0] load,
+    input load_en // <- Add a load enable signal
 );
-    
-    reg [7:0] out_next; // Next value to be assigned
-    parameter [7:0] DEFAULT_LOAD_VALUE = 8'b0; // Default load value
-    
+
     always @(posedge clk or posedge reset) begin
         if (reset) begin
-            out <= DEFAULT_LOAD_VALUE;
-            out_next <= DEFAULT_LOAD_VALUE;
-        end else if (!enable) begin
-            // Hold value or add custom logic if needed
-        end else begin
-            out <= out_next;
-            out_next <= out_next + 1;
-        end
-    end
-
-    // Optional: logic to load a value
-    always @(posedge clk) begin
-        if (load) begin
-            out_next <= load;
+            out <= 8'b0;
+        end else if (load_en) begin
+            out <= load;
+        end else if (enable) begin
+            out <= out + 1;
         end
     end
 endmodule
-
