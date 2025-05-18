@@ -16,12 +16,51 @@ module tt_um_example (
     input  wire       rst_n     // reset_n - low to reset
 );
 
+    wire [7:0] load = 8'b11000101;
+    wire [7:0] value;
+    counter c1(value, clk, rst_n, ena, load);
+
   // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
+  assign uo_out  = value;
   assign uio_out = 0;
   assign uio_oe  = 0;
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0};
+  // wire _unused = &{ena, clk, rst_n, 1'b0};
 
 endmodule
+
+
+
+
+
+module counter (
+    output reg [7:0] out,
+    input clk,
+    input reset,
+    input enable,
+    input [7:0] load // Load value
+);
+    
+    reg [7:0] out_next = 8'b0; // Next value to be assigned
+    parameter [7:0] DEFAULT_LOAD_VALUE = 8'b0; // Default load value
+    
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            if(load)begin
+                out <= load; // Load the value if load is high
+                out_next <= load; // Set next value to loaded value
+            end else begin
+                out <= DEFAULT_LOAD_VALUE; // Reset to default value
+                out_next <= DEFAULT_LOAD_VALUE; // Set next value to default
+            end
+           
+       end else if (!enable) begin
+            out <= 8'bz;
+        end else begin
+            out <= out_next;
+            out_next <= out_next + 1;
+        end
+    end
+endmodule
+
