@@ -21,7 +21,7 @@ module tt_um_example (
     counter c1(value, clk, rst_n, ena, load);
 
   // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = enable ? value : 8'bz;
+  assign uo_out  = ena ? value : 8'bz;
   assign uio_out = 0;
   assign uio_oe  = 0;
 
