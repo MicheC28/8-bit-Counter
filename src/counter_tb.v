@@ -12,7 +12,7 @@ module tb_tt_um_example;
   reg clk;
   reg rst_n;
 
-  // Instantiate the design under test (DUT)
+  // Instantiate the DUT
   tt_um_example dut (
     .ui_in(ui_in),
     .uo_out(uo_out),
@@ -24,53 +24,69 @@ module tb_tt_um_example;
     .rst_n(rst_n)
   );
 
-  // Clock generation: 10ns period
+  // Generate 10ns clock
   always #5 clk = ~clk;
 
   initial begin
-   // VCD dump for waveform
-    $dumpfile("test.vcd");  // Name of the output VCD file
-    $dumpvars(0, tb_tt_um_example);     // Dump everything under this testbench
+    // VCD Dump
+    $dumpfile("test.vcd");
+    $dumpvars(0, tb_tt_um_example);
 
-    $display("Starting testbench...");
+    $display("Starting enhanced testbench...");
 
-    // Initialize signals
+    // Initialization
     clk = 0;
     rst_n = 0;
-    ena = 1;         // Enable always high
+    ena = 1;
     ui_in = 8'b0;
-    uio_in = 8'b0;   // Load = 0 => count mode
+    uio_in = 8'b0;  // Load low
 
-    // Reset the design
-    #10;
-    rst_n = 1;       // Release reset
+    // Reset sequence
+    #10 rst_n = 1;
     #10;
 
-    // === COUNTING MODE TEST ===
-    $display("Testing counting...");
-    repeat (8) begin
+    // === COUNT FROM 0 to 0xFF ===
+    $display("Counting from 0 to 0xFF");
+    repeat (256) begin
       #10;
-      $display("Counter = %b", uo_out);
+      $display("Counter = %02h", uo_out);
     end
 
-    // === LOAD MODE TEST ===
-    $display("Testing loading...");
-
-    // Set load signal (uio_in) high
-    uio_in = 8'b11111111;
-
-    // Load the value
-    ui_in = 8'b10101010;  // Value to load
-    #10;                  // One clock edge
-    uio_in = 8'b00000000; // Back to count mode
-
-    #10;
-    $display("After load: Counter = %b", uo_out);
-
-    // Count a few more times
-    repeat (4) begin
+    // === WRAP-AROUND OBSERVATION ===
+    repeat (5) begin
       #10;
-      $display("Counter = %b", uo_out);
+      $display("Wrap-around: Counter = %02h", uo_out);
+    end
+
+    // === LOAD NEW VALUE ===
+    $display("Loading value 0xAA");
+    ui_in = 8'hAA;
+    uio_in = 8'hFF;  // Assert load
+    #10;
+    uio_in = 8'h00;  // Deassert load
+    #10;
+    $display("After load: Counter = %02h", uo_out);
+
+    // === CONTINUE COUNTING ===
+    repeat (10) begin
+      #10;
+      $display("Post-load counting: Counter = %02h", uo_out);
+    end
+
+    // === DISABLE COUNTER ===
+    $display("Disabling counter for 10 cycles");
+    ena = 0;
+    repeat (10) begin
+      #10;
+      $display("While disabled: Counter = %02h", uo_out);
+    end
+
+    // === RE-ENABLE COUNTER ===
+    $display("Re-enabling counter");
+    ena = 1;
+    repeat (10) begin
+      #10;
+      $display("After re-enable: Counter = %02h", uo_out);
     end
 
     $display("Testbench complete.");
