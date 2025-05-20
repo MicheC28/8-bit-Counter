@@ -59,11 +59,12 @@ module tb_tt_um_example;
     end
 
     // === LOAD NEW VALUE ===
-    $display("Loading value 0xAA");
-    ui_in = 8'hAA;
+    $display("Loading value 0x2b");
+    ui_in = 8'h2b;
     uio_in = 8'hFF;  // Assert load
     #10;
     uio_in = 8'h00;  // Deassert load
+    $display("Right after load: Counter = %02h", uo_out);
     #10;
     $display("After load: Counter = %02h", uo_out);
 

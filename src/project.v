@@ -21,6 +21,19 @@ module tt_um_example (
   wire T_0, T_1, T_2, T_3, T_4, T_5, T_6, T_7;
   wire Q_0, Q_1, Q_2, Q_3, Q_4, Q_5, Q_6, Q_7;
   wire ena_0, ena_1, ena_2, ena_3, ena_4, ena_5, ena_6, ena_7;
+  wire l0, l1, l2, l3, l4, l5, l6, l7;
+
+
+  assign l0 = base[0] ^ Q_0;
+  assign l1 = base[1] ^ Q_1;
+    assign l2 = base[2] ^ Q_2;  
+    assign l3 = base[3] ^ Q_3;
+    assign l4 = base[4] ^ Q_4;
+    assign l5 = base[5] ^ Q_5;
+    assign l6 = base[6] ^ Q_6;
+    assign l7 = base[7] ^ Q_7;
+
+
 
   assign ena_0 = ena;
   assign ena_1 = ena && Q_0;
@@ -31,17 +44,7 @@ module tt_um_example (
   assign ena_6 = ena && Q_0 && Q_1 && Q_2 && Q_3 && Q_4 && Q_5;
   assign ena_7 = ena && Q_0 && Q_1 && Q_2 && Q_3 && Q_4 && Q_5 && Q_6;
 
-  // Instantiate 8 2-to-1 multiplexers
 
-  mux2to1 mux_0(.sel(load), .a(ena_0), .b(base[0]), .y(T_0));
-  mux2to1 mux_1(.sel(load), .a(ena_1), .b(base[1]), .y(T_1));
-  mux2to1 mux_2(.sel(load), .a(ena_2), .b(base[2]), .y(T_2));
-  mux2to1 mux_3(.sel(load), .a(ena_3), .b(base[3]), .y(T_3));
-  mux2to1 mux_4(.sel(load), .a(ena_4), .b(base[4]), .y(T_4));
-  mux2to1 mux_5(.sel(load), .a(ena_5), .b(base[5]), .y(T_5));
-  mux2to1 mux_6(.sel(load), .a(ena_6), .b(base[6]), .y(T_6));
-  mux2to1 mux_7(.sel(load), .a(ena_7), .b(base[7]), .y(T_7));
-  
   
   // Instantiate T flip-flops
 
@@ -54,9 +57,20 @@ module tt_um_example (
   t_flip_flop tff_6(.clk(clk), .reset(~rst_n), .T(T_6), .Q(Q_6));
   t_flip_flop tff_7(.clk(clk), .reset(~rst_n), .T(T_7), .Q(Q_7));
 
+    // Instantiate 8 2-to-1 multiplexers
 
+  mux2to1 mux_0(.sel(load), .a(ena_0), .b(l0), .y(T_0));
+  mux2to1 mux_1(.sel(load), .a(ena_1), .b(l1), .y(T_1));
+  mux2to1 mux_2(.sel(load), .a(ena_2), .b(l2), .y(T_2));
+  mux2to1 mux_3(.sel(load), .a(ena_3), .b(l3), .y(T_3));
+  mux2to1 mux_4(.sel(load), .a(ena_4), .b(l4), .y(T_4));
+  mux2to1 mux_5(.sel(load), .a(ena_5), .b(l5), .y(T_5));
+  mux2to1 mux_6(.sel(load), .a(ena_6), .b(l6), .y(T_6));
+  mux2to1 mux_7(.sel(load), .a(ena_7), .b(l7), .y(T_7));
   
 
+
+  
 
   // All output pins must be assigned. If not used, assign to 0.
   // assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
