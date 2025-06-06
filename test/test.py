@@ -32,12 +32,14 @@ async def test_tt_um_8bit_counter(dut):
         await ClockCycles(dut.clk, 1)
         expected = (i + 1) % 256  # Counter increments after clock edge
         dut._log.info(f"Counter = {int(dut.uo_out.value):02x}")
+        assert dut.uo_out.value == BinaryValue(expected, n_bits=8), f"Counter mismatch at {expected}: expected {expected:02x}, got {int(dut.uo_out.value):02x}"
 
     # === WRAP-AROUND OBSERVATION ===
     for i in range(5):
         await ClockCycles(dut.clk, 1)
         dut._log.info(f"Wrap-around: Counter = {int(dut.uo_out.value):02x}")
-        assert dut.uo_out.value == BinaryValue(i, n_bits=8), f"Counter mismatch after wrap-around at {i}: expected {i:02x}, got {int(dut.uo_out.value):02x}"
+        expected = (i + 1) % 256
+        assert dut.uo_out.value == BinaryValue(expected, n_bits=8), f"Counter mismatch after wrap-around at {i}: expected {i:02x}, got {int(dut.uo_out.value):02x}"
 
     # === LOAD NEW VALUE ===
     dut._log.info("Loading value 0x2b")
