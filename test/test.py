@@ -3,38 +3,72 @@
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
-
+from cocotb.triggers import ClockCycles, RisingEdge
+from cocotb.binary import BinaryValue
 
 @cocotb.test()
-async def test_project(dut):
-    dut._log.info("Start")
+async def test_tt_um_8bit_counter(dut):
+    dut._log.info("Starting enhanced testbench...")
 
-    # Set the clock period to 10 us (100 KHz)
-    clock = Clock(dut.clk, 10, units="us")
+    # Set up clock: 10 ns period (100 MHz)
+    clock = Clock(dut.clk, 10, units="ns")
     cocotb.start_soon(clock.start())
 
-    # Reset
-    dut._log.info("Reset")
+    # === INITIALIZATION ===
+    dut.clk.value = 0
+    dut.rst_n.value = 0
     dut.ena.value = 1
     dut.ui_in.value = 0
     dut.uio_in.value = 0
-    dut.rst_n.value = 0
-    await ClockCycles(dut.clk, 10)
+
+    # Reset sequence
+    await ClockCycles(dut.clk, 1)
     dut.rst_n.value = 1
-
-    dut._log.info("Test project behavior")
-
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
-
-    # Wait for one clock cycle to see the output values
     await ClockCycles(dut.clk, 1)
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
+    # === COUNT FROM 0 to 0xFF ===
+    dut._log.info("Counting from 0 to 0xFF")
+    for i in range(256):
+        await ClockCycles(dut.clk, 1)
+        dut._log.info(f"Counter = {int(dut.uo_out.value):02x}")
+        assert dut.uo_out.value == BinaryValue(i, n_bits=8), f"Counter mismatch at {i}: expected {i:02x}, got {int(dut.uo_out.value):02x}"
 
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    # === WRAP-AROUND OBSERVATION ===
+    for i in range(5):
+        await ClockCycles(dut.clk, 1)
+        dut._log.info(f"Wrap-around: Counter = {int(dut.uo_out.value):02x}")
+        assert dut.uo_out.value == BinaryValue(i, n_bits=8), f"Counter mismatch after wrap-around at {i}: expected {i:02x}, got {int(dut.uo_out.value):02x}"
+
+    # === LOAD NEW VALUE ===
+    dut._log.info("Loading value 0x2b")
+    dut.ui_in.value = 0x2b
+    dut.uio_in.value = 0xFF  # Load signal asserted
+    await ClockCycles(dut.clk, 1)
+    dut.uio_in.value = 0x00  # Load deasserted
+    assert dut.uo_out.value == BinaryValue(0x2b, n_bits=8), f"Counter mismatch after load: expected 0x2b, got {int(dut.uo_out.value):02x}"
+    dut._log.info(f"Right after load: Counter = {int(dut.uo_out.value):02x}")
+    await ClockCycles(dut.clk, 1)
+    dut._log.info(f"After load: Counter = {int(dut.uo_out.value):02x}")
+
+    # === CONTINUE COUNTING ===
+    for i in range(10):
+        await ClockCycles(dut.clk, 1)
+        dut._log.info(f"Post-load counting: Counter = {int(dut.uo_out.value):02x}")
+
+    # === DISABLE COUNTER ===
+    dut._log.info("Disabling counter for 10 cycles")
+    dut.ena.value = 0
+    temp = int(dut.uo_out.value)
+    for i in range(10):
+        await ClockCycles(dut.clk, 1)
+        dut._log.info(f"While disabled: Counter = {int(dut.uo_out.value):02x}")
+        assert dut.uo_out.value == BinaryValue(temp, n_bits=8)
+
+    # === RE-ENABLE COUNTER ===
+    dut._log.info("Re-enabling counter")
+    dut.ena.value = 1
+    for i in range(10):
+        await ClockCycles(dut.clk, 1)
+        dut._log.info(f"After re-enable: Counter = {int(dut.uo_out.value):02x}")
+
+    dut._log.info("Testbench complete.")
