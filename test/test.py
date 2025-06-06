@@ -47,6 +47,7 @@ async def test_tt_um_8bit_counter(dut):
     dut.uio_in.value = 0xFF  # Load signal asserted
     await ClockCycles(dut.clk, 1)
     dut.uio_in.value = 0x00  # Load deasserted
+    await ClockCycles(dut.clk, 1)
     assert dut.uo_out.value == BinaryValue(0x2b, n_bits=8), f"Counter mismatch after load: expected 0x2b, got {int(dut.uo_out.value):02x}"
     dut._log.info(f"Right after load: Counter = {int(dut.uo_out.value):02x}")
     await ClockCycles(dut.clk, 1)
