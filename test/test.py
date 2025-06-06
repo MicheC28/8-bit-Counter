@@ -64,7 +64,11 @@ async def test_tt_um_8bit_counter(dut):
     temp = int(dut.uo_out.value)
     for i in range(10):
         await ClockCycles(dut.clk, 1)
-        dut._log.info(f"While disabled: Counter = {(dut.uo_out.value):02x}")
+        val = dut.uo_out.value
+        if 'z' in str(val):
+            dut._log.info(f"While disabled: Counter = {val}")
+        else:
+            dut._log.info(f"While disabled: Counter = {int(val):02x}")
         assert dut.uo_out.value == BinaryValue(temp, n_bits=8, bigEndian=False)
 
     # === RE-ENABLE COUNTER ===
