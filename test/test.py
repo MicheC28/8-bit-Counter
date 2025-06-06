@@ -69,7 +69,7 @@ async def test_tt_um_8bit_counter(dut):
             dut._log.info(f"While disabled: Counter = {val}")
         else:
             dut._log.info(f"While disabled: Counter = {int(val):02x}")
-        assert dut.uo_out.value == BinaryValue(temp, n_bits=8, bigEndian=False)
+        assert dut.uo_out.value == "zzzzzzzz" 
 
     # === RE-ENABLE COUNTER ===
     dut._log.info("Re-enabling counter")
